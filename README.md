@@ -99,6 +99,25 @@ docker rmi 123456789abc
 
 # Dockerfile
 
+Créer le fichier index.js
+```
+nano index.js
+```
+```
+const express = require('express');
+const app = express();
+const PORT = 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello Docker!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+```
+
+Créer le Dockerfile
 ```
 nano Dockerfile
 ```
@@ -110,6 +129,21 @@ RUN npm install
 COPY . .
 EXPOSE 3000
 CMD ["npm", "start"]
+```
+
+Construire l’image Docker
+```
+docker build -t hello-docker .
+```
+
+Exécuter le conteneur
+```
+docker run -p 3000:3000 hello-docker
+```
+
+Tester
+```
+curl http://localhost:3000
 ```
 
 # Docker Compose
@@ -225,7 +259,7 @@ Token pour ajouter un worker
 docker swarm join-token worker
 ```
 
-Liste les nœuds du Swarm
+Lister les noeuds du Swarm
 ```
 docker node ls
 ```
@@ -253,6 +287,61 @@ docker stack deploy -c docker-compose.yml mystack
 Supprime une stack
 ```
 docker stack rm mystack
+```
+
+# Docker Network
+
+Lister les réseaux existants
+```
+docker network ls
+```
+
+Créer un réseau bridge personnalisé
+```
+docker network create \
+  --driver bridge \
+  mon_reseau_bridge
+```
+
+Vérification
+```
+docker network inspect mon_reseau_bridge
+```
+
+Créer deux conteneurs connectés au réseau
+```
+docker run -dit --name conteneur1 --network mon_reseau_bridge alpine sh
+docker run -dit --name conteneur2 --network mon_reseau_bridge alpine sh
+```
+
+Tester la communication entre les deux conteneurs
+```
+docker exec -it conteneur1 ping conteneur2
+```
+
+Créer un réseau overlay (pour Docker Swarm)
+```
+docker swarm init
+docker network create \
+  --driver overlay \
+  --attachable \
+  mon_reseau_overlay
+```
+
+Connecter manuellement un conteneur à un réseau
+```
+docker network connect mon_reseau_bridge conteneur1
+```
+
+Pour le déconnecter
+```
+docker network disconnect mon_reseau_bridge conteneur1
+```
+
+Nettoyage
+```
+docker container rm -f conteneur1 conteneur2
+docker network rm mon_reseau_bridge mon_reseau_overlay
 ```
 
 # Nettoyage Docker
